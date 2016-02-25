@@ -2,8 +2,14 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
+
+import javax.swing.text.AbstractDocument.LeafElement;
+
 import java.util.Random;
 import java.util.TreeMap;
 import java.util.UUID;
@@ -42,8 +48,8 @@ public class LaunchMe {
 		QID1Max = 10;
 		QID2Min = 30;
 		QID2Max = 50;
-		nbSD = 3;
-		k = 2;
+		nbSD = 6;
+		k = 3;
 		
 		//Initialisation des données sensible
 		String[] sd = new String[nbSD];
@@ -52,7 +58,7 @@ public class LaunchMe {
 		}
 		
 		//initialisation des n-uplet
-		Data[] datas = new Data[n];
+		ArrayList<Data> datas = new ArrayList<Data>();
 		Random rand = new Random();
 		for(int i = 0; i<n ; i++){
 			//premier quasi-identifiant généré aléatoirement
@@ -63,7 +69,8 @@ public class LaunchMe {
 			int numsd = rand.nextInt(nbSD);
 			
 			//Création du n-uplet
-			datas[i] = new Data(qid1, qid2,sd[numsd]);
+			datas.add(new Data(qid1, qid2,sd[numsd]));
+			
 			
 		}
 		
@@ -89,32 +96,69 @@ public class LaunchMe {
 			e.printStackTrace();
 		}
 				*/
-
+		mondrian(datas,k);
 		
 		//Affichage
-		for(Data d : datas){
+		/*for(Data d : datas){
 			System.out.println(d.toString());
-		}
+		}*/
 
 	}
 
-	public void mondrian(Data[] datas, int k){
-		if(datas.length<2*k){
-			//trouve!!
+	public static void mondrian(ArrayList<Data> datas, int k){
+		if(datas.size()<=2*k){
+			System.out.println("Groupe :");
+			for (Data d: datas){
+				System.out.println(d.toString());
+			}
 		}else{
 			int dim = chooseDimension(datas);
-			Map<Integer, Integer> frequency = frequencySet(datas, dim);
-			int splitVal = findMedian(frequency);
+			TreeMap<Integer, Integer> frequency = frequencySet(datas, dim);
+			int splitVal = findMedian(frequency, datas.size());
+			
+			ArrayList<Data> L = new ArrayList<Data>();
+			ArrayList<Data> R = new ArrayList<Data>();
+			if(dim == 1){
+				for (Data d: datas){
+					if(d.getQID1() <= splitVal){
+						L.add(d);
+					}else{
+						R.add(d);
+					}
+				}
+			}else{
+				for (Data d: datas){
+					if(d.getQID2() <= splitVal){
+						L.add(d);
+					}else{
+						R.add(d);
+					}
+				}
+			}
+			mondrian(L, k);
+			mondrian(R,k);
+			
 		}
 		
 	}
 	
-	private int findMedian(Map<Integer, Integer> frequency) {
+	private static int findMedian(TreeMap<Integer, Integer> frequency, int length) {
+		/*for (Entry<Integer, Integer> entree : frequency.entrySet()) {
+			System.out.println("Cl� : "+entree.getKey()+" Valeur : "+entree.getValue());
+		}*/
 		
-		return 0;
+		int keyMadian = -1;
+		int sum = 0;
+		Iterator<Entry<Integer, Integer>> it = frequency.entrySet().iterator();
+		while (it.hasNext() && sum<=length/2){
+			Entry<Integer, Integer> entry = it.next();
+			keyMadian = entry.getKey();
+			sum += entry.getValue();
+		}
+		return keyMadian;
 	}
 
-	public int chooseDimension(Data[] datas){
+	public static int chooseDimension(ArrayList<Data> datas){
 		int qid1min = Integer.MAX_VALUE;
 		int qid1max = Integer.MIN_VALUE;
 		int qid2min = Integer.MAX_VALUE;
@@ -143,7 +187,7 @@ public class LaunchMe {
 			return 2;
 	}
 	
-	public Map<Integer, Integer> frequencySet(Data[] datas, int dim){
+	public static TreeMap<Integer, Integer> frequencySet(ArrayList<Data> datas, int dim){
 		HashMap<Integer, Integer> frequency = new HashMap<Integer,Integer>();
 		if(dim ==1){
 			for(Data d : datas){
