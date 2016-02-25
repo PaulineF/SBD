@@ -2,8 +2,14 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
+
+import javax.swing.text.AbstractDocument.LeafElement;
+
 import java.util.Random;
 import java.util.TreeMap;
 import java.util.UUID;
@@ -42,30 +48,29 @@ public class LaunchMe {
 		QID1Max = 10;
 		QID2Min = 30;
 		QID2Max = 50;
-		nbSD = 3;
-		k = 2;
+		nbSD = 6;
+		k = 3;
 		
-		/*
-		 * Initialisation des donnees sensibles
-		 */
+		//Initialisation des données sensible
 		String[] sd = new String[nbSD];
 		for (int i =0; i<nbSD; i++){
 			sd[i] = UUID.randomUUID().toString().substring(1, 6);
 		}
 		
 		//initialisation des n-uplet
-		Data[] datas = new Data[n];
+		ArrayList<Data> datas = new ArrayList<Data>();
 		Random rand = new Random();
 		for(int i = 0; i<n ; i++){
-			//premier quasi-identifiant genere aleatoirement
+			//premier quasi-identifiant généré aléatoirement
 			int qid1 = rand.nextInt((QID1Max - QID1Min) + 1) + QID1Min;
-			//deuxieme quasi-identifiant genere aleatoirement
+			//deuxieme quasi-identifiant généré aléatoirement
 			int qid2 = rand.nextInt((QID2Max - QID2Min) + 1) + QID2Min;
-			//choix de la donnee sensible aleatoire
+			//choix de la donnée sensible aléatoire
 			int numsd = rand.nextInt(nbSD);
 			
-			//Creation du n-uplet
-			datas[i] = new Data(qid1, qid2,sd[numsd]);
+			//Création du n-uplet
+			datas.add(new Data(qid1, qid2,sd[numsd]));
+			
 			
 		}
 		
@@ -91,45 +96,74 @@ public class LaunchMe {
 			e.printStackTrace();
 		}
 				*/
-
+		mondrian(datas,k);
 		
 		//Affichage
-		for(Data d : datas){
+		/*for(Data d : datas){
 			System.out.println(d.toString());
-		}
+		}*/
 
 	}
 
-	public void mondrian(Data[] datas, int k){
-		if(datas.length<2*k){
-			//trouve!!
+	public static void mondrian(ArrayList<Data> datas, int k){
+		if(datas.size()<=2*k){
+			System.out.println("Groupe :");
+			for (Data d: datas){
+				System.out.println(d.toString());
+			}
 		}else{
 			int dim = chooseDimension(datas);
-			Map<Integer, Integer> frequency = frequencySet(datas, dim);
-			int splitVal = findMedian(frequency);
+			TreeMap<Integer, Integer> frequency = frequencySet(datas, dim);
+			int splitVal = findMedian(frequency, datas.size());
+			
+			ArrayList<Data> L = new ArrayList<Data>();
+			ArrayList<Data> R = new ArrayList<Data>();
+			if(dim == 1){
+				for (Data d: datas){
+					if(d.getQID1() <= splitVal){
+						L.add(d);
+					}else{
+						R.add(d);
+					}
+				}
+			}else{
+				for (Data d: datas){
+					if(d.getQID2() <= splitVal){
+						L.add(d);
+					}else{
+						R.add(d);
+					}
+				}
+			}
+			mondrian(L, k);
+			mondrian(R,k);
+			
 		}
 		
 	}
 	
-	/*
-	 * Methode qui renvoie la mediane de jeu de donnees
-	 */
-	private int findMedian(Map<Integer, Integer> frequency) {
+	private static int findMedian(TreeMap<Integer, Integer> frequency, int length) {
+		/*for (Entry<Integer, Integer> entree : frequency.entrySet()) {
+			System.out.println("Cl� : "+entree.getKey()+" Valeur : "+entree.getValue());
+		}*/
 		
-		return 0;
+		int keyMadian = -1;
+		int sum = 0;
+		Iterator<Entry<Integer, Integer>> it = frequency.entrySet().iterator();
+		while (it.hasNext() && sum<=length/2){
+			Entry<Integer, Integer> entry = it.next();
+			keyMadian = entry.getKey();
+			sum += entry.getValue();
+		}
+		return keyMadian;
 	}
 
-	/*
-	 * Methode qui renvoie la dimension qui va etre divise.
-	 * La dimension est celle qui a la difference entre valeurs plus grande.
-	 */
-	public int chooseDimension(Data[] datas){
+	public static int chooseDimension(ArrayList<Data> datas){
 		int qid1min = Integer.MAX_VALUE;
 		int qid1max = Integer.MIN_VALUE;
 		int qid2min = Integer.MAX_VALUE;
 		int qid2max = Integer.MIN_VALUE;
 		
-		//Chercher la valeur minimal et maximal de chaqie quasi identifient
 		for (Data d : datas){
 			if(d.getQID1() < qid1min)
 				qid1min = d.getQID1();
@@ -144,9 +178,7 @@ public class LaunchMe {
 				qid2max = d.getQID2();
 		}
 		
-		//Calcul de difference pour les valeurs du premier quasi identifiant
 		int dif1= qid1max - qid1min;
-		//Calcul de difference pour les valeurs du deuxieme quasi identifiant
 		int dif2 =qid2max - qid2min;
 		
 		if(dif1> dif2)
@@ -155,17 +187,9 @@ public class LaunchMe {
 			return 2;
 	}
 	
-	/*
-	 * Methode qui renvoit l'ensemble des valeurs uniques contenus dans le jeu de donnees
-	 * et leur fr�quence d'apparition dans ce dernier
-	 */
-	public Map<Integer, Integer> frequencySet(Data[] datas, int dim){
-		//Initialisation de l'ensemble
+	public static TreeMap<Integer, Integer> frequencySet(ArrayList<Data> datas, int dim){
 		HashMap<Integer, Integer> frequency = new HashMap<Integer,Integer>();
-		
-		//Si la dimension choisie est egale a 1
 		if(dim ==1){
-			//Remplisage de l'ensemble avec les valeurs du premier quasi identifiant
 			for(Data d : datas){
 				int nb = 0;
 				if(frequency.containsKey(d.getQID1())){
@@ -174,7 +198,6 @@ public class LaunchMe {
 				frequency.put(d.getQID1(), nb+1);
 			}
 		}else{
-			//Remplisage de l'ensemble avec les valeurs du deuxieme quasi identifiant
 			for(Data d : datas){
 				int nb = 0;
 				if(frequency.containsKey(d.getQID2())){
@@ -186,3 +209,4 @@ public class LaunchMe {
 		return new TreeMap<Integer, Integer>(frequency);
 	}
 }
+>>>>>>> branch 'master' of https://github.com/PaulineF/SBD.git
