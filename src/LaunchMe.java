@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -16,7 +17,7 @@ import java.util.UUID;
 
 
 public class LaunchMe {
-	//CardinalitÃ© n
+	//Cardinalité n
 	static int n;
 	
 	//borne min du premier QID
@@ -31,11 +32,14 @@ public class LaunchMe {
 	//borne max du deuxieme QID
 	static int QID2Max;
 	
-	//nombre de donnÃ©es sensible
+	//nombre de données sensible
 	static int nbSD;
 	
-	//ParamÃ¨tre de confidentialitÃ© k
+	//Paramètre de confidentialité k
 	static int k;
+	
+	//Resultat du mondrian
+	static List<ArrayList<Data>> results;
 	
 
 	/**
@@ -51,7 +55,7 @@ public class LaunchMe {
 		nbSD = 6;
 		k = 5;
 		
-		//Initialisation des donnÃ©es sensible
+		//Initialisation des données sensible
 		String[] sd = new String[nbSD];
 		for (int i =0; i<nbSD; i++){
 			sd[i] = UUID.randomUUID().toString().substring(1, 6);
@@ -61,21 +65,21 @@ public class LaunchMe {
 		ArrayList<Data> datas = new ArrayList<Data>();
 		Random rand = new Random();
 		for(int i = 0; i<n ; i++){
-			//premier quasi-identifiant gÃ©nÃ©rÃ© alÃ©atoirement
+			//premier quasi-identifiant généré aléatoirement
 			int qid1 = rand.nextInt((QID1Max - QID1Min) + 1) + QID1Min;
-			//deuxieme quasi-identifiant gÃ©nÃ©rÃ© alÃ©atoirement
+			//deuxieme quasi-identifiant généré aléatoirement
 			int qid2 = rand.nextInt((QID2Max - QID2Min) + 1) + QID2Min;
-			//choix de la donnÃ©e sensible alÃ©atoire
+			//choix de la donnée sensible aléatoire
 			int numsd = rand.nextInt(nbSD);
 			
-			//CrÃ©ation du n-uplet
+			//Création du n-uplet
 			datas.add(new Data(qid1, qid2,sd[numsd]));
 			
 			
 		}
 		
 		//Ecriture dans un fichier csv
-		/*BufferedWriter bw;
+		BufferedWriter bw;
 		try {
 			//Creation du fichier
 			bw = new BufferedWriter(
@@ -84,9 +88,9 @@ public class LaunchMe {
 					false
 					)
 					);
-			//Ecriture des donnÃ©es dans le fichier.
+			//Ecriture des données dans le fichier.
 			for(Data d : datas){
-				bw.append ( d.getQID1() +" "+ d.getQID2()+" "+ d.getSd() +" \n" );
+				bw.append ( d.getQID1() +","+ d.getQID2()+","+ d.getSd() +" \n" );
 			}
 			
 			bw.flush();
@@ -95,30 +99,38 @@ public class LaunchMe {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-				*/
+				
+		results = new ArrayList<ArrayList<Data>>();
 		mondrian(datas,k);
 		
 		//Affichage
-		/*for(Data d : datas){
-			System.out.println(d.toString());
-		}*/
+		for(ArrayList<Data> result : results){
+			System.out.println("Groupe :");
+			for (Data d: result){
+				System.out.println(d.toString());
+			}
+		}
 
 	}
 
 	public static void mondrian(ArrayList<Data> datas, int k){
+		//Condition pour créer une classe d'equivalence
 		if(datas.size()<(2*k)){
-			System.out.println("Groupe :");
-			for (Data d: datas){
-				System.out.println(d.toString());
-			}
+			results.add(datas);
+			
 		}else{
+			//Choix de la dimension
 			int dim = chooseDimension(datas);
+			//Comptage du nombre de fois que la clé apparait 
 			TreeMap<Integer, Integer> frequency = frequencySet(datas, dim);
+			//Cherche la mediane
 			int splitVal = findMedian(frequency, datas.size());
 			
 			ArrayList<Data> L = new ArrayList<Data>();
 			ArrayList<Data> R = new ArrayList<Data>();
+			//si la dimension est 1
 			if(dim == 1){
+				//ajout des données au 2 nouvelles listes
 				for (Data d: datas){
 					if(d.getQID1() <= splitVal){
 						L.add(d);
@@ -126,7 +138,7 @@ public class LaunchMe {
 						R.add(d);
 					}
 				}
-			}else{
+			}else{ //dimension 2
 				for (Data d: datas){
 					if(d.getQID2() <= splitVal){
 						L.add(d);
@@ -135,7 +147,7 @@ public class LaunchMe {
 					}
 				}
 			}
-			
+			//Recursive du mondrian
 			mondrian(L, k);
 			mondrian(R,k);
 			
@@ -144,6 +156,7 @@ public class LaunchMe {
 	}
 	/*
 	 * Methode qui renvoie la mediane de jeu de donnees
+	 * Parcours des fréquences jusqu'à trouver la médiane
 	 */
 	private static int findMedian(TreeMap<Integer, Integer> frequency, int length) {
 		int keyMadian = -1;
@@ -158,8 +171,8 @@ public class LaunchMe {
 	}
 
 	/*
-	 * Methode qui renvoie la dimension qui va etre divise.
-	 * La dimension est celle qui a la difference entre valeurs plus grande.
+	 * Methode qui renvoie la dimension qui va etre utilisée pour mondrian.
+	 * La dimension est celle qui a la difference entre le min et max la plus grande.
 	 */
 	public static int chooseDimension(ArrayList<Data> datas){
 		int qid1min = Integer.MAX_VALUE;
@@ -201,7 +214,7 @@ public class LaunchMe {
 		//Initialisation de l'ensemble
 		HashMap<Integer, Integer> frequency = new HashMap<Integer,Integer>();
 		if(dim ==1){
-			//Remplisage de l'ensemble avec les valeurs du premier quasi identifiant
+			//Remplisage de l'ensemble avec les valeurs du premier quasi identifiant et le nombre de fois que celui ci apparait
 			for(Data d : datas){
 				int nb = 0;
 				if(frequency.containsKey(d.getQID1())){
@@ -210,7 +223,7 @@ public class LaunchMe {
 				frequency.put(d.getQID1(), nb+1);
 			}
 		}else{
-			//Remplisage de l'ensemble avec les valeurs du deuxieme quasi identifiant
+			//Remplissage de l'ensemble avec les valeurs du deuxieme quasi identifiant et le nombre de fois que celui ci apparait
 			for(Data d : datas){
 				int nb = 0;
 				if(frequency.containsKey(d.getQID2())){
