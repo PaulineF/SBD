@@ -209,4 +209,3 @@ public class LaunchMe {
 		return new TreeMap<Integer, Integer>(frequency);
 	}
 }
->>>>>>> branch 'master' of https://github.com/PaulineF/SBD.git
