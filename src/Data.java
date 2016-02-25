@@ -1,10 +1,14 @@
 
 public class Data {
 	
+	//Premiere quasi identifiant
 	public int QID1;
+	//Deuxime quasi identifiant
 	public int QID2;
+	//Donnee sensible
 	public String sd;
 	
+	//Constructeur qui permet d'initializer les attributs de la classe Data
 	public Data(int qID1, int qID2, String sd) {
 		super();
 		QID1 = qID1;
@@ -33,7 +37,7 @@ public class Data {
 		this.sd = sd;
 	}
 	
-	
+	//Methode qui retourne la chaine de caracteres a afficher
 	public String toString(){
 		return "QID1 : "+QID1+" // QID2 : "+ QID2 +"// sd : "+sd;
 	}
