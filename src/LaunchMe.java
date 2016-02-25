@@ -141,7 +141,9 @@ public class LaunchMe {
 		}
 		
 	}
-	
+	/*
+	 * Methode qui renvoie la mediane de jeu de donnees
+	 */
 	private static int findMedian(TreeMap<Integer, Integer> frequency, int length) {
 		/*for (Entry<Integer, Integer> entree : frequency.entrySet()) {
 			System.out.println("Clé : "+entree.getKey()+" Valeur : "+entree.getValue());
@@ -158,12 +160,17 @@ public class LaunchMe {
 		return keyMadian;
 	}
 
+	/*
+	 * Methode qui renvoie la dimension qui va etre divise.
+	 * La dimension est celle qui a la difference entre valeurs plus grande.
+	 */
 	public static int chooseDimension(ArrayList<Data> datas){
 		int qid1min = Integer.MAX_VALUE;
 		int qid1max = Integer.MIN_VALUE;
 		int qid2min = Integer.MAX_VALUE;
 		int qid2max = Integer.MIN_VALUE;
 		
+		//Chercher la valeur minimal et maximal de chaqie quasi identifient
 		for (Data d : datas){
 			if(d.getQID1() < qid1min)
 				qid1min = d.getQID1();
@@ -178,7 +185,9 @@ public class LaunchMe {
 				qid2max = d.getQID2();
 		}
 		
+		//Calcul de difference pour les valeurs du premier quasi identifiant
 		int dif1= qid1max - qid1min;
+		//Calcul de difference pour les valeurs du deuxieme quasi identifiant
 		int dif2 =qid2max - qid2min;
 		
 		if(dif1> dif2)
@@ -187,9 +196,15 @@ public class LaunchMe {
 			return 2;
 	}
 	
+	/*
+	 * Methode qui renvoit l'ensemble des valeurs uniques contenus dans le jeu de donnees
+	 * et leur fréquence d'apparition dans ce dernier
+	 */
 	public static TreeMap<Integer, Integer> frequencySet(ArrayList<Data> datas, int dim){
+		//Initialisation de l'ensemble
 		HashMap<Integer, Integer> frequency = new HashMap<Integer,Integer>();
 		if(dim ==1){
+			//Remplisage de l'ensemble avec les valeurs du premier quasi identifiant
 			for(Data d : datas){
 				int nb = 0;
 				if(frequency.containsKey(d.getQID1())){
@@ -198,6 +213,7 @@ public class LaunchMe {
 				frequency.put(d.getQID1(), nb+1);
 			}
 		}else{
+			//Remplisage de l'ensemble avec les valeurs du deuxieme quasi identifiant
 			for(Data d : datas){
 				int nb = 0;
 				if(frequency.containsKey(d.getQID2())){
