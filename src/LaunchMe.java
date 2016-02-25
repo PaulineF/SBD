@@ -43,13 +43,13 @@ public class LaunchMe {
 	 */
 	public static void main(String[] args) {
 		
-		n = 10;
+		n = 23;
 		QID1Min = 0;
 		QID1Max = 10;
 		QID2Min = 30;
-		QID2Max = 50;
+		QID2Max = 40;
 		nbSD = 6;
-		k = 3;
+		k = 5;
 		
 		//Initialisation des donnÃ©es sensible
 		String[] sd = new String[nbSD];
@@ -106,7 +106,7 @@ public class LaunchMe {
 	}
 
 	public static void mondrian(ArrayList<Data> datas, int k){
-		if(datas.size()<=2*k){
+		if(datas.size()<(2*k)){
 			System.out.println("Groupe :");
 			for (Data d: datas){
 				System.out.println(d.toString());
@@ -135,6 +135,7 @@ public class LaunchMe {
 					}
 				}
 			}
+			
 			mondrian(L, k);
 			mondrian(R,k);
 			
@@ -143,14 +144,10 @@ public class LaunchMe {
 	}
 	
 	private static int findMedian(TreeMap<Integer, Integer> frequency, int length) {
-		/*for (Entry<Integer, Integer> entree : frequency.entrySet()) {
-			System.out.println("Clé : "+entree.getKey()+" Valeur : "+entree.getValue());
-		}*/
-		
 		int keyMadian = -1;
 		int sum = 0;
 		Iterator<Entry<Integer, Integer>> it = frequency.entrySet().iterator();
-		while (it.hasNext() && sum<=length/2){
+		while (it.hasNext() && sum<length/2){
 			Entry<Integer, Integer> entry = it.next();
 			keyMadian = entry.getKey();
 			sum += entry.getValue();
